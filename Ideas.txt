@@ -1,3 +1,0 @@
-Heuristics:
-* h1(state) = number of mismatched tiles from goal
-* h2(state) = sum of manhattan distances of each piece from goal
