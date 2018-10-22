@@ -105,6 +105,11 @@
 				result)))))
 
 (defun n-mismatched-tiles-h (state)
+	"Heuristic that reflects the number of mismatched tiles when compared to the goal state.
+	 Arguments:
+	 * state -- The state being evaluated.
+	 Return:
+	 * The number of mismatched tiles."
 	(let ((count 0)
 		  (n-rows (car (array-dimensions state)))
 		  (n-columns (car (cdr (array-dimensions state)))))
