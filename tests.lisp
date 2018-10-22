@@ -31,6 +31,12 @@
 			(nil 13 10 11)
 			(14 9 15 12))))
 
+(setf a6 (make-array '(4 4)
+			:initial-contents '((nil 15 14 13)
+			(12 11 10 9)
+			(8 7 6 5)
+			(4 3 2 1))))
+
 ;;;get-position
 (let ((res "")
 	 (test (get-position a1)))
@@ -122,3 +128,25 @@
 		(setf res "failed"))
 	(format t "operator-move-right yes move test ~A!~%" res))
 
+
+;;n-mismatched-tiles-h
+(let ((res "")
+	  (test (n-mismatched-tiles-h a1)))
+	(if (equalp test 7)
+		(setf res "passed")
+		(setf res "failed"))
+	(format t "n-mismatched-tiles-h simple test ~A!~%" res))
+
+(let ((res "")
+	  (test (n-mismatched-tiles-h a2)))
+	(if (equalp test 0)
+		(setf res "passed")
+		(setf res "failed"))
+	(format t "n-mismatched-tiles-h zero test ~A!~%" res))
+
+(let ((res "")
+	  (test (n-mismatched-tiles-h a6)))
+	(if (equalp test 16)
+		(setf res "passed")
+		(setf res "failed"))
+	(format t "n-mismatched-tiles-h full wrong test ~A!~%" res))

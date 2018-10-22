@@ -103,3 +103,13 @@
 				(setf (aref result row col) (aref state row (+ col 1)))
 				(setf (aref result row (+ col 1)) nil)
 				result)))))
+
+(defun n-mismatched-tiles-h (state)
+	(let ((count 0)
+		  (n-rows (car (array-dimensions state)))
+		  (n-columns (car (cdr (array-dimensions state)))))
+		(dotimes (i n-rows) ;go through each position (i, j) to check if it's nil
+			(dotimes (j n-columns)
+				(if (not (equalp (aref state i j) (aref +goal-state+ i j)))
+					(setf count (1+ count)))))
+		count))
