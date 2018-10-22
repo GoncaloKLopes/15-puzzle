@@ -31,6 +31,15 @@
 	 				(setf (aref new-array i j) (aref array i j))))
 	 	new-array))
 
+(defun manhattan-distance (pos1 pos2)
+	"Returns the manhattan distance between 2 points in a 4x4 space.
+	 Arguments:
+	 * pos1 -- first position.
+	 * pos2 -- second position.
+	 Returns
+	 * Manhattan distance between pos1 and pos2."
+	)
+
 (defun goalp (state)
 	"Check if state is the goal state.
 	 Arguments:
@@ -49,12 +58,12 @@
 	 (let ((row (car (get-position state)))
 	 	   (col (cdr (get-position state))))
 	 	(if (equalp row 0) ;if top row
-			state 
+			nil 
 			(let ((result (copy-array state))) ;new var, don't change original state
 			(progn
 				(setf (aref result row col) (aref state (- row 1) col))
 				(setf (aref result (- row 1) col) nil)
-				result)))))
+				(list result))))))
 
 (defun operator-move-down (state)
 	"Apply the move-down operator.
@@ -65,12 +74,12 @@
 	 (let ((row (car (get-position state)))
 	 	   (col (cdr (get-position state))))
 	 	(if (equalp row (- (car (cdr (array-dimensions state))) 1)) ;if bottom row
-			state 
+			nil 
 			(let ((result (copy-array state))) ;new var, don't change original state
 			(progn
 				(setf (aref result row col) (aref state (+ row 1) col))
 				(setf (aref result (+ row 1) col) nil)
-				result)))))
+				(list result))))))
 
 (defun operator-move-left (state)
 	"Apply the move-left operator.
@@ -81,12 +90,12 @@
 	 (let ((row (car (get-position state)))
 	 	   (col (cdr (get-position state))))
 	 	(if (equalp col 0) ;if left-est column
-			state 
+			nil
 			(let ((result (copy-array state))) ;new var, don't change original state
 			(progn
 				(setf (aref result row col) (aref state row (- col 1)))
 				(setf (aref result row (- col 1)) nil)
-				result)))))
+				(list result))))))
 
 (defun operator-move-right (state)
 	"Apply the move-right operator.
@@ -97,13 +106,21 @@
 	 (let ((row (car (get-position state)))
 	 	   (col (cdr (get-position state))))
 	 	(if (equalp col (- (car (cdr (array-dimensions state))) 1)) ;if right-est column
-			state 
+			nil
 			(let ((result (copy-array state))) ;new var, don't change original state
 			(progn
 				(setf (aref result row col) (aref state row (+ col 1)))
 				(setf (aref result row (+ col 1)) nil)
-				result)))))
+				(list result))))))
 
+(defun cost (state)
+	"Get the cost of a state.
+	 Arguments:
+	 * state -- A state.
+	 Return:
+	 * An integer corresponding to the cost of state."
+
+	)
 (defun n-mismatched-tiles-h (state)
 	"Heuristic that reflects the number of mismatched tiles when compared to the goal state.
 	 Arguments:
@@ -118,3 +135,25 @@
 				(if (not (equalp (aref state i j) (aref +goal-state+ i j)))
 					(setf count (1+ count)))))
 		count))
+
+
+(defun manhattan-block-distance-h (state)
+	"Heuristic that reflects the sum of manhattan distances of each tile when compared to the goal state.
+	 Arguments:
+	 * state -- The state being evaluated.
+	 Return:
+	 * The sum of manhattan distances of mismatched tiles."	)
+
+(defun solve-problem (state strategy)
+	(procura (cria-problema state 
+							(list #'operator-move-right #'operator-move-left #'operator-move-up #'operator-move-down)
+							:estado-final +goal-state+
+							:objectivo? #'goalp
+							:custo nil
+							:heuristica #'n-mismatched-tiles-h
+							:estado= #'equalp)
+
+			 strategy
+			 :espaco-em-arvore? T))
+			;;TODO define max depth for DFS)
+
