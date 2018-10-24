@@ -1,5 +1,6 @@
 (in-package :user)
-(defconstant +goal-state+ (make-array '(4 4)
+
+(defconstant *goal-state* (make-array '(4 4)
 							:initial-contents '((1 2 3 4)
 							(5 6 7 8)
 							(9 10 11 12)
@@ -9,7 +10,7 @@
 (defun get-position (state)
 	"Get the empty position.
 	 Arguments:
-	 * state -- A state.
+	 * state -- An array representing the state.
 	 Return:
 	 * A pair corresponding to the position of the player."
 	(let ((n-rows (car (array-dimensions state)))
@@ -19,111 +20,44 @@
 				(if (null (aref state i j))
 					(return-from get-position (cons i j)))))))
 
-(defun copy-array (array)
-	"Copy an array.
-	 Arguments:
-	 * array -- The array to be copied.
-	 Return:
-	 * A copy of array."
-	 (let ((new-array (make-array (array-dimensions array))))
-	 	(dotimes (i (car (array-dimensions array)))
-	 			(dotimes (j (car (cdr (array-dimensions array))))
-	 				(setf (aref new-array i j) (aref array i j))))
-	 	new-array))
-
 (defun goalp (state)
 	"Check if state is the goal state.
 	 Arguments:
-	 * state -- The state being tested.
+	 * state -- An array representing the state.
 	 Return:
 	 * T if it is, NIL otherwise."
-	(equalp state +goal-state+))
+	(equalp state *goal-state*))
 
 
-(defun operator-move-up (state)
-	"Apply the move-up operator.
+(defun operator (state)
+	"Apply up, down, left and right operators on the current state.
 	 Arguments:
-	 * state -- The state being changed.
+	 * state -- An array representing the state.
 	 Return:
-	 * The new resulting state or state if already at the top row."
-	 (let ((row (car (get-position state)))
-	 	   (col (cdr (get-position state))))
-	 	(if (equalp row 0) ;if top row
-			nil 
-			(let ((result (copy-array state))) ;new var, don't change original state
-			(progn
-				(setf (aref result row col) (aref state (- row 1) col))
-				(setf (aref result (- row 1) col) nil)
-				(list result))))))
-
-(defun operator-move-down (state)
-	"Apply the move-down operator.
-	 Arguments:
-	 * state -- The state being changed.
-	 Return:
-	 * The new resulting state or state if already at the bottom row."
-	 (let ((row (car (get-position state)))
-	 	   (col (cdr (get-position state))))
-	 	(if (equalp row (- (car (cdr (array-dimensions state))) 1)) ;if bottom row
-			nil 
-			(let ((result (copy-array state))) ;new var, don't change original state
-			(progn
-				(setf (aref result row col) (aref state (+ row 1) col))
-				(setf (aref result (+ row 1) col) nil)
-				(list result))))))
-
-(defun operator-move-left (state)
-	"Apply the move-left operator.
-	 Arguments:
-	 * state -- The state being changed.
-	 Return:
-	 * The new resulting state or state if already at left-est column."
-	 (let ((row (car (get-position state)))
-	 	   (col (cdr (get-position state))))
-	 	(if (equalp col 0) ;if left-est column
-			nil
-			(let ((result (copy-array state))) ;new var, don't change original state
-			(progn
-				(setf (aref result row col) (aref state row (- col 1)))
-				(setf (aref result row (- col 1)) nil)
-				(list result))))))
-
-(defun operator-move-right (state)
-	"Apply the move-right operator.
-	 Arguments:
-	 * state -- The state being changed.
-	 Return:
-	 * The new resulting state or state if already at right-est column."
-	 (let ((row (car (get-position state)))
-	 	   (col (cdr (get-position state))))
-	 	(if (equalp col (- (car (cdr (array-dimensions state))) 1)) ;if right-est column
-			nil
-			(let ((result (copy-array state))) ;new var, don't change original state
-			(progn
-				(setf (aref result row col) (aref state row (+ col 1)))
-				(setf (aref result row (+ col 1)) nil)
-				(list result))))))
-
-(defun n-mismatched-tiles-h (state)
-	"Heuristic that reflects the number of mismatched tiles when compared to the goal state.
-	 Arguments:
-	 * state -- The state being evaluated.
-	 Return:
-	 * The number of mismatched tiles."
-	(let ((count 0)
-		  (n-rows (car (array-dimensions state)))
+	 * A list of state arrays, corresponding to the result of applying each operator."
+	(let ((result)
+		  (row (car (get-position state)))
+	 	  (col (cdr (get-position state)))
+	 	  (n-rows (car (array-dimensions state)))
 		  (n-columns (car (cdr (array-dimensions state)))))
-		(dotimes (i n-rows) ;go through each position (i, j) to check if it's nil
-			(dotimes (j n-columns)
-				(if (not (equalp (aref state i j) (aref +goal-state+ i j)))
-					(setf count (1+ count)))))
-		count))
-
+		;each element of the list represents a move up, down, left or right
+		(dolist (move '((1 . 0) (0 . 1) (-1 . 0) (0 . -1)))
+			(let ((aux-state (copy-array state))
+				  (new-row (+ row (car move)))
+				  (new-col (+ col (cdr move))))
+				(if (and (and (>= new-row 0) (< new-row n-rows))
+						 (and (>= new-col 0) (< new-col n-columns)))
+					(progn
+						(setf (aref aux-state row col) (aref aux-state new-row new-col))
+						(setf (aref aux-state new-row new-col) nil)
+						(setf result (cons aux-state result))
+					))))
+		result))
 
 (defun manhattan-block-distance-h (state)
 	"Heuristic that reflects the sum of manhattan distances of each tile when compared to the goal state.
 	 Arguments:
-	 * state -- The state being evaluated.
+	 * state -- An array representing the state.
 	 Return:
 	 * The sum of manhattan distances of mismatched tiles."	
 	(let ((n-rows (car (array-dimensions state)))
@@ -142,9 +76,15 @@
 		sum))
 
 (defun solve-problem (state strategy)
+	"Solve a problem using a given strategy and an initial state.
+	 Arguments:
+	 * state -- An array representing the state.
+	 * strategy -- a string that indicates the strategy to use.
+	 Return:
+	 * A list of states from the initial state to the goal state."
 	(let ((result (procura (cria-problema state 
-							(list #'operator-move-right #'operator-move-left #'operator-move-up #'operator-move-down)
-							:estado-final +goal-state+
+							(list #'operator)
+							:estado-final *goal-state*
 							:objectivo? #'goalp
 							:custo nil
 							:heuristica #'manhattan-block-distance-h
@@ -152,5 +92,6 @@
 						strategy
 		 				:espaco-em-arvore? T)))
 
-		result)) 
+		(car result))) 
+
 
