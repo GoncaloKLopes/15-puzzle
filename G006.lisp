@@ -31,15 +31,6 @@
 	 				(setf (aref new-array i j) (aref array i j))))
 	 	new-array))
 
-(defun manhattan-distance (pos1 pos2)
-	"Returns the manhattan distance between 2 points in a 4x4 space.
-	 Arguments:
-	 * pos1 -- first position.
-	 * pos2 -- second position.
-	 Returns
-	 * Manhattan distance between pos1 and pos2."
-	)
-
 (defun goalp (state)
 	"Check if state is the goal state.
 	 Arguments:
@@ -113,14 +104,6 @@
 				(setf (aref result row (+ col 1)) nil)
 				(list result))))))
 
-(defun cost (state)
-	"Get the cost of a state.
-	 Arguments:
-	 * state -- A state.
-	 Return:
-	 * An integer corresponding to the cost of state."
-
-	)
 (defun n-mismatched-tiles-h (state)
 	"Heuristic that reflects the number of mismatched tiles when compared to the goal state.
 	 Arguments:
@@ -142,18 +125,32 @@
 	 Arguments:
 	 * state -- The state being evaluated.
 	 Return:
-	 * The sum of manhattan distances of mismatched tiles."	)
+	 * The sum of manhattan distances of mismatched tiles."	
+	(let ((n-rows (car (array-dimensions state)))
+		  (n-columns (car (cdr (array-dimensions state))))
+		  (sum 0))
+		(flet ((manhattan-distance (pos1 pos2) ;pos1 and pos2 are pairs
+				(+ (abs (- (car pos1) (car pos2))) 
+				   (abs (- (cdr pos1) (cdr pos2)))))
+			   (correct-pos (piece-index)
+				(if (null piece-index)
+					(cons (1- n-rows) (1- n-columns))
+					(cons (floor (1- piece-index) n-rows) (mod (1- piece-index) n-columns)))))
+		(dotimes (i n-rows)
+			(dotimes (j n-columns)
+				(setf sum (+ sum (manhattan-distance (cons i j) (correct-pos (aref state i j))))))))
+		sum))
 
 (defun solve-problem (state strategy)
-	(procura (cria-problema state 
+	(let ((result (procura (cria-problema state 
 							(list #'operator-move-right #'operator-move-left #'operator-move-up #'operator-move-down)
 							:estado-final +goal-state+
 							:objectivo? #'goalp
 							:custo nil
-							:heuristica #'n-mismatched-tiles-h
+							:heuristica #'manhattan-block-distance-h
 							:estado= #'equalp)
+						strategy
+		 				:espaco-em-arvore? T)))
 
-			 strategy
-			 :espaco-em-arvore? T))
-			;;TODO define max depth for DFS)
+		result)) 
 
